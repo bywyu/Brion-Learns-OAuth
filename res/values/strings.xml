@@ -2,6 +2,7 @@
 <resources>
     <string name="twitter">Logged In?</string>
     <string name="app_name">BLOA</string>
+    <string name="auth_type">GoBeering</string>
     <string name="auth_service">My Authenticator Service</string>
     <string name="auth_other">Another Auth String</string>
     <string name="title_fmt">Preference Category?</string>
@@ -15,4 +16,6 @@
     <string name="userhint">Not logged in</string>
     <string name="type">Type something and see if it shows up here</string>
     <string name="status">Ok, this is the one we\'ve all been waiting for!!! Well, maybe not you...</string>
+    <string name="auth_progress_title">Authorizing...</string>
+    <string name="auth_progress_text">Checking your credentials</string>
 </resources>

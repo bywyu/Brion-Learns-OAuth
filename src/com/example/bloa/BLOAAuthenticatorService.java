@@ -6,9 +6,9 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
-public class MyAuthenticatorService extends Service {
+public class BLOAAuthenticatorService extends Service {
 
-	public MyAuthenticatorService() {
+	public BLOAAuthenticatorService() {
 		// TODO Auto-generated constructor stub
 	}
 
@@ -18,8 +18,8 @@ public class MyAuthenticatorService extends Service {
      * IPC.
      */
     public class LocalBinder extends Binder {
-        MyAuthenticatorService getService() {
-            return MyAuthenticatorService.this;
+        BLOAAuthenticatorService getService() {
+            return BLOAAuthenticatorService.this;
         }
     }
 

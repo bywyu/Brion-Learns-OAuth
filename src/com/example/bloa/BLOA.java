@@ -36,6 +36,9 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorDescription;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -51,7 +54,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
-public class BLOA extends Activity implements OnCheckedChangeListener, OnClickListener, AccountManagerCallback {
+public class BLOA extends Activity implements OnCheckedChangeListener, OnClickListener, AccountManagerCallback<Bundle> {
 	public static final String TAG = "BLOA";
 
 	public static final String TWITTER_REQUEST_TOKEN_URL = "http://twitter.com/oauth/request_token";
@@ -85,14 +88,24 @@ public class BLOA extends Activity implements OnCheckedChangeListener, OnClickLi
         setContentView(R.layout.main);
         
         mMgr = AccountManager.get(this);
-        Account[] myAccts = mMgr.getAccountsByType("GoBeering");
-        AccountManagerFuture<Bundle> acct;
+        Account[] accounts = mMgr.getAccountsByType(getString(R.string.auth_type));
+        AuthenticatorDescription[] authers = mMgr.getAuthenticatorTypes();
         
-        if(myAccts == null || myAccts.length == 0) {
-        	acct = mMgr.addAccount("GoBeering", null, null, null, null, this, null);
-        } else {
-        	
-        }
+        
+		SharedPreferences settings = this.getSharedPreferences(PREFS, 0);
+/*		if (settings.contains(TOKEN_STRING)) {
+			Account a = settings.get
+			String token = settings.getString(TOKEN_STRING, "");
+			if(!token.equals("")) {
+				mConsumer.setTokenWithSecret(token, secret);
+				mProvider.setConsumer(mConsumer);
+				new GetCredentialsTask().execute();
+			}
+		}
+*/ 
+		AccountManagerFuture<Bundle> acct = mMgr.addAccount(getString(R.string.auth_type), 
+				null, null, null, null, this, null);
+		Log.d(TAG, "Account toString(): " + acct.toString());
         
         mCB = (CheckBox) this.findViewById(R.id.enable);
         mCB.setChecked(false);
@@ -101,90 +114,26 @@ public class BLOA extends Activity implements OnCheckedChangeListener, OnClickLi
         mDisplay = (TextView) this.findViewById(R.id.last);
         mUser = (TextView) this.findViewById(R.id.user);
         
-        // mMgr.confirmCredentials(account, options, activity, callback, handler)
-        
-        if(savedInstanceState != null) {
-        	mConsumer = (OAuthConsumer) savedInstanceState.getSerializable("consumer");
-        	mProvider = (OAuthProvider) savedInstanceState.getSerializable("provider");
-        	String token = mConsumer.getToken();
-        	String secret = mConsumer.getTokenSecret();
-        	if(token != null && secret != null) {
-	 	    	Log.d(TAG, "From Saved!! Token: " + token + ", Secret: " + secret);
-        		// mCB.setChecked(true);
-        		// mEditGroup.setEnabled(true);
-        	}
-        } else {
-	        mConsumer = new CommonsHttpOAuthConsumer(
-	        		Keys.TWITTER_CONSUMER_KEY,
-	        		Keys.TWITTER_CONSUMER_SECRET,
-	        		SignatureMethod.HMAC_SHA1);
-	 	    
-	        SharedPreferences settings = this.getSharedPreferences(PREFS, 0);
-	 	    if(settings.contains(TOKEN_STRING) && settings.contains(SECRET_STRING)) {
-	 	    	String token = settings.getString(TOKEN_STRING, "");
-	 	    	String secret = settings.getString(SECRET_STRING, "");
-	 	    	Log.d(TAG, "From preferences!! Token: " + token + ", Secret: " + secret);
-	 	    	mConsumer.setTokenWithSecret(token, secret);
-	 	    }
-			mProvider = new DefaultOAuthProvider(mConsumer,TWITTER_REQUEST_TOKEN_URL,TWITTER_ACCESS_TOKEN_URL,TWITTER_AUTHORIZE_URL);
-        }
+        mConsumer = new CommonsHttpOAuthConsumer(
+        		Keys.TWITTER_CONSUMER_KEY,
+        		Keys.TWITTER_CONSUMER_SECRET,
+        		SignatureMethod.HMAC_SHA1);
+ 	    
+		mProvider = new DefaultOAuthProvider(mConsumer,
+				TWITTER_REQUEST_TOKEN_URL,
+				TWITTER_ACCESS_TOKEN_URL,
+				TWITTER_AUTHORIZE_URL);
+		
         mClient = new DefaultHttpClient();
-        JSONObject jso;
-        if((jso = getCredentials()) != null) {
-        	mButton.setEnabled(true);
-        	mEditor.setEnabled(true);
-    		mCB.setChecked(true);
-        	mUser.setText(jso.optString("name", "Bad Value"));
-        }
+        
         mButton.setOnClickListener(this);
         mCB.setOnCheckedChangeListener(this);
     }
     
     @Override
     protected void onSaveInstanceState(Bundle b) {
-    	b.putSerializable("provider", mProvider);
-    	b.putSerializable("consumer", mConsumer);
-    }
-    
-    @Override
-    protected void onNewIntent(Intent i) {
-    	
-    	Uri uri = i.getData();
-    	if (uri != null && CALLBACK_URI.getScheme().equals(uri.getScheme())) {
-    	    try {
-        	    String verifier = uri.getQueryParameter(OAuth.OAUTH_VERIFIER);
-        	    mProvider.retrieveAccessToken(verifier);
-        	    String token = mConsumer.getToken();
-        	    String secret = mConsumer.getTokenSecret();
-	 	    	Log.d(TAG, "New OAuth Token: " + token + ", New Secret: " + secret);
-	 	    	JSONObject jso;
-	 	        if((jso = getCredentials()) != null) {
-	 	        	mButton.setEnabled(true);
-	 	        	mEditor.setEnabled(true);
-	         	    SharedPreferences settings = this.getSharedPreferences(PREFS, 0);
-	        	    SharedPreferences.Editor editor = settings.edit();
-	        	    if(!settings.contains(TOKEN_STRING))
-	        	    		editor.putString(TOKEN_STRING, token);
-	        	    if(!settings.contains(SECRET_STRING))
-	        	    	editor.putString(SECRET_STRING, secret);
-	        	    editor.commit();
-	        	    JSONObject user = jso.getJSONObject("user");
-	        	    mUser.setText(user.optString("name", "Bad Value"));
-	 	        }
-			} catch (OAuthMessageSignerException e) {
-				e.printStackTrace();
-			} catch (OAuthNotAuthorizedException e) {
-				e.printStackTrace();
-			} catch (OAuthExpectationFailedException e) {
-				e.printStackTrace();
-			} catch (OAuthCommunicationException e) {
-				e.printStackTrace();
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-    	} else {
-    		
-    	}
+    	// b.putSerializable("provider", mProvider);
+    	// b.putSerializable("consumer", mConsumer);
     }
     
     @Override
@@ -311,8 +260,23 @@ public class BLOA extends Activity implements OnCheckedChangeListener, OnClickLi
 	}
 
 	@Override
-	public void run(AccountManagerFuture arg0) {
+	public void run(AccountManagerFuture<Bundle> arg0) {
 		// TODO Auto-generated method stub
-		
+		if(arg0.isCancelled()) {
+			
+		} else {
+			try {
+				Bundle b = arg0.getResult();
+			} catch (OperationCanceledException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (AuthenticatorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 }
