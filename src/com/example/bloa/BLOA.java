@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 
-import oauth.signpost.OAuth;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthProvider;
@@ -88,6 +87,7 @@ public class BLOA extends Activity implements OnCheckedChangeListener, OnClickLi
         setContentView(R.layout.main);
         
         mMgr = AccountManager.get(this);
+        Account[] allAccounts = mMgr.getAccounts();
         Account[] accounts = mMgr.getAccountsByType(getString(R.string.auth_type));
         AuthenticatorDescription[] authers = mMgr.getAuthenticatorTypes();
         
@@ -102,11 +102,10 @@ public class BLOA extends Activity implements OnCheckedChangeListener, OnClickLi
 				new GetCredentialsTask().execute();
 			}
 		}
-*/ 
+*/
 		AccountManagerFuture<Bundle> acct = mMgr.addAccount(getString(R.string.auth_type), 
-				null, null, null, null, this, null);
-		Log.d(TAG, "Account toString(): " + acct.toString());
-        
+				null, null, null, new BLOAAccountAuthenticatorActivity(), this, null);
+		
         mCB = (CheckBox) this.findViewById(R.id.enable);
         mCB.setChecked(false);
         mEditor = (EditText) this.findViewById(R.id.editor);

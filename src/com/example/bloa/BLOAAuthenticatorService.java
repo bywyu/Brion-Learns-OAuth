@@ -3,35 +3,26 @@ package com.example.bloa;
 import android.accounts.AccountManager;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 public class BLOAAuthenticatorService extends Service {
-
-	public BLOAAuthenticatorService() {
-		// TODO Auto-generated constructor stub
+	public static final String TAG = "BLOAAuthenticatorService";
+	BLOAAccountAuthenticator mAuth;
+	
+	public void onCreate() {
+		super.onCreate();
+		Log.d(TAG, "onCreate");
 	}
-
-    /**
-     * Class for clients to access.  Because we know this service always
-     * runs in the same process as its clients, we don't need to deal with
-     * IPC.
-     */
-    public class LocalBinder extends Binder {
-        BLOAAuthenticatorService getService() {
-            return BLOAAuthenticatorService.this;
-        }
-    }
-
+	
     @Override
     public IBinder onBind(Intent intent) {
         // Select the interface to return.  If your service only implements
         // a single interface, you can just return it here without checking
         // the Intent.
-        if (AccountManager.ACTION_AUTHENTICATOR_INTENT.equals(intent.getAction())) {
-            return null;
-        }
-        return null;
+    	IBinder ret = null;
+        if (AccountManager.ACTION_AUTHENTICATOR_INTENT.equals(intent.getAction()))
+            ret = new BLOAAccountAuthenticator(this.getBaseContext()).getIBinder();
+        return ret;
     }
-
 }
