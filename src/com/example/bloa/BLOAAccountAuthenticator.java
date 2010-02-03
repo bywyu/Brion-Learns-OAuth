@@ -4,7 +4,6 @@ import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthProvider;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
-import oauth.signpost.signature.SignatureMethod;
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
@@ -35,10 +34,9 @@ public class BLOAAccountAuthenticator extends AbstractAccountAuthenticator {
 
 		mConsumer = new CommonsHttpOAuthConsumer(
         		Keys.TWITTER_CONSUMER_KEY,
-        		Keys.TWITTER_CONSUMER_SECRET,
-        		SignatureMethod.HMAC_SHA1);
+        		Keys.TWITTER_CONSUMER_SECRET);
         
-		mProvider = new DefaultOAuthProvider(mConsumer,
+		mProvider = new DefaultOAuthProvider(
 				TWITTER_REQUEST_TOKEN_URL,
 				TWITTER_ACCESS_TOKEN_URL,
 				TWITTER_AUTHORIZE_URL);
@@ -49,7 +47,7 @@ public class BLOAAccountAuthenticator extends AbstractAccountAuthenticator {
 			String AuthTokenType, String[] requiredFeatures, Bundle options)
 			throws NetworkErrorException {
 		Bundle ret = new Bundle();
-		Intent i = new Intent(mContext, BLOAAccountAuthenticatorActivity.class);
+		Intent i = new Intent(mContext, OAUTH.class);
 		i.putExtra(AccountManager.KEY_ACCOUNT_MANAGER_RESPONSE, response);
 		ret.putParcelable(AccountManager.KEY_INTENT, i);
 		return ret;
