@@ -25,7 +25,7 @@
 	    </activity>
         <service 
         	android:label="@string/auth_service"
-        	android:name=".BLOAAuthenticatorService">
+        	android:name=".BLOAAuthService">
 			<intent-filter>
 			  <action android:name="android.accounts.AccountAuthenticator" />
 			</intent-filter>
